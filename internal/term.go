@@ -4,7 +4,8 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/overseven/go-math-expression-parser/interfaces"
+	"github.com/arconomy/go-math-expression-parser/interfaces"
+	"github.com/shopspring/decimal"
 )
 
 // Term - the struct which contains a single value
@@ -24,16 +25,16 @@ func (t *Term) GetVarList(vars map[string]interface{}) {
 }
 
 // Evaluate - return a value which contains in Term
-func (t *Term) Evaluate(vars map[string]float64, p interfaces.ExpParser) (float64, error) {
+func (t *Term) Evaluate(vars map[string]decimal.Decimal, p interfaces.ExpParser) (decimal.Decimal, error) {
 	if t.Val == "" {
-		return 0.0, nil
+		return decimal.Zero, nil
 	}
-	if val, err := strconv.ParseFloat(t.Val, 64); err == nil {
+	if val, err := decimal.NewFromString(t.Val); err == nil {
 		return val, nil
 	}
 	val, ok := vars[t.Val]
 	if !ok {
-		return 0.0, errors.New("value '" + t.Val + " not found in map")
+		return decimal.Zero, errors.New("value '" + t.Val + " not found in map")
 	}
 	return val, nil
 }

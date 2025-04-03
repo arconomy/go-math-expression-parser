@@ -6,15 +6,16 @@ import (
 	"fmt"
 	"os"
 
-	expp "github.com/overseven/go-math-expression-parser/parser"
+	expp "github.com/arconomy/go-math-expression-parser/parser"
+	"github.com/shopspring/decimal"
 )
 
 // Foo - example of user-defined function
-func Foo(a ...float64) (float64, error) {
+func Foo(a ...decimal.Decimal) (decimal.Decimal, error) {
 	fmt.Println("foo was called!")
-	var sum float64
+	var sum decimal.Decimal
 	for _, val := range a {
-		sum += val
+		sum = sum.Add(val)
 	}
 	return sum, nil
 }
@@ -60,12 +61,12 @@ func main() {
 	varsNeeded := expp.GetVarList(exp)
 
 	// create [variable]value map to execute the expression
-	vars := make(map[string]float64)
+	vars := make(map[string]decimal.Decimal)
 
 	// fill map
 	for _, v := range varsNeeded {
 		fmt.Print(v + " = ")
-		var val float64
+		var val decimal.Decimal
 		_, err := fmt.Scan(&val)
 		if err != nil {
 			fmt.Println("Incorrect value!")

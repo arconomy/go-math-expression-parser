@@ -4,8 +4,9 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/overseven/go-math-expression-parser/internal"
-	"github.com/overseven/go-math-expression-parser/parser"
+	"github.com/arconomy/go-math-expression-parser/internal"
+	"github.com/arconomy/go-math-expression-parser/parser"
+	"github.com/shopspring/decimal"
 )
 
 func TestNodeGetVarList(t *testing.T) {
@@ -91,30 +92,30 @@ func TestNodeEvaluate(t *testing.T) {
 	n4 := internal.Node{Op: "+", LExp: &term1, RExp: &n2}
 	n5 := internal.Node{Op: "~", LExp: &term1, RExp: &n2}
 
-	var vars = map[string]float64{"a": 17.7}
+	var vars = map[string]decimal.Decimal{"a": decimal.NewFromFloat(17.7)}
 	res, err := n1.Evaluate(vars, p)
 	if err != nil {
 		t.Error(err)
 	}
-	if !fuzzyEqual(res, -3.0) {
-		t.Error("incorrect result = " + strconv.FormatFloat(res, 'e', 4, 64))
+	if !fuzzyEqual(res, decimal.NewFromFloat(-3.0)) {
+		t.Error("incorrect result = " + res.String())
 	}
 
 	res, err = n2.Evaluate(vars, p)
 	if err != nil {
 		t.Error(err)
 	}
-	if !fuzzyEqual(res, 21.7) {
-		t.Error("incorrect result = " + strconv.FormatFloat(res, 'e', 4, 64))
+	if !fuzzyEqual(res, decimal.NewFromFloat(21.7)) {
+		t.Error("incorrect result = " + res.String())
 	}
 
 	res, err = n3.Evaluate(vars, p)
-	if res != 0.0 || err == nil {
+	if !res.Equal(decimal.Zero) || err == nil {
 		t.Error("incorrect error handling!")
 	}
 
 	res, err = n3_2.Evaluate(vars, p)
-	if res != 0.0 || err == nil {
+	if !res.Equal(decimal.Zero) || err == nil {
 		t.Error("incorrect error handling!")
 	}
 
@@ -122,12 +123,12 @@ func TestNodeEvaluate(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if res != 22.7 {
+	if !res.Equal(decimal.NewFromFloat(22.7)) {
 		t.Error("incorrect error handling!")
 	}
 
 	res, err = n5.Evaluate(vars, p)
-	if res != 0.0 || err == nil {
+	if !res.Equal(decimal.Zero) || err == nil {
 		t.Error("incorrect error handling!")
 	}
 }

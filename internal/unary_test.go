@@ -4,8 +4,9 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/overseven/go-math-expression-parser/internal"
-	"github.com/overseven/go-math-expression-parser/parser"
+	"github.com/arconomy/go-math-expression-parser/internal"
+	"github.com/arconomy/go-math-expression-parser/parser"
+	"github.com/shopspring/decimal"
 )
 
 func TestUnaryGetVarList(t *testing.T) {
@@ -61,35 +62,35 @@ func TestUnaryEvaluate(t *testing.T) {
 	u4 := internal.Unary{Op: "+", Exp: &term4}
 	u5 := internal.Unary{Op: "~", Exp: &term2}
 
-	var vars = map[string]float64{"a": 17.7}
+	var vars = map[string]decimal.Decimal{"a": decimal.NewFromFloat(17.7)}
 	res, err := u1.Evaluate(vars, p)
-	if res != 0.0 || err != nil {
-		t.Error("incorrect result = " + strconv.FormatFloat(res, 'e', 4, 64))
+	if !res.Equal(decimal.Zero) || err != nil {
+		t.Error("incorrect result = " + res.String())
 	}
 
 	res, err = u2.Evaluate(vars, p)
 	if err != nil {
 		t.Error(err)
 	}
-	if !fuzzyEqual(res, -4.0) {
-		t.Error("incorrect result = " + strconv.FormatFloat(res, 'e', 4, 64))
+	if !fuzzyEqual(res, decimal.NewFromFloat(-4.0)) {
+		t.Error("incorrect result = " + res.String())
 	}
 
 	res, err = u3.Evaluate(vars, p)
 	if err != nil {
 		t.Error(err)
 	}
-	if !fuzzyEqual(res, 17.7) {
-		t.Error("incorrect result = " + strconv.FormatFloat(res, 'e', 4, 64))
+	if !fuzzyEqual(res, decimal.NewFromFloat(17.7)) {
+		t.Error("incorrect result = " + res.String())
 	}
 
 	res, err = u4.Evaluate(vars, p)
-	if res != 0.0 || err == nil {
+	if !res.Equal(decimal.Zero) || err == nil {
 		t.Error("incorrect error handling!")
 	}
 
 	res, err = u5.Evaluate(vars, p)
-	if res != 0.0 || err == nil {
+	if !res.Equal(decimal.Zero) || err == nil {
 		t.Error("incorrect error handling!")
 	}
 }

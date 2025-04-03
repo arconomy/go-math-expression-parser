@@ -6,11 +6,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/overseven/go-math-expression-parser/funcs"
-	dfuncs "github.com/overseven/go-math-expression-parser/funcs/basic"
-	"github.com/overseven/go-math-expression-parser/funcs/userfunc"
-	"github.com/overseven/go-math-expression-parser/interfaces"
-	"github.com/overseven/go-math-expression-parser/internal"
+	"github.com/arconomy/go-math-expression-parser/funcs"
+	dfuncs "github.com/arconomy/go-math-expression-parser/funcs/basic"
+	"github.com/arconomy/go-math-expression-parser/funcs/userfunc"
+	"github.com/arconomy/go-math-expression-parser/interfaces"
+	"github.com/arconomy/go-math-expression-parser/internal"
+	"github.com/shopspring/decimal"
 )
 
 // Parser - context structure, which contains user-defined function
@@ -63,7 +64,7 @@ func (p *Parser) Parse(str string) (interfaces.Expression, error) {
 }
 
 // Evaluate - execute expression and return result
-func (p *Parser) Evaluate(vars map[string]float64) (float64, error) {
+func (p *Parser) Evaluate(vars map[string]decimal.Decimal) (decimal.Decimal, error) {
 	result, err := p.Expression.Evaluate(vars, p)
 	return result, err
 }
@@ -131,7 +132,7 @@ func (p *Parser) parseFunc(str []rune) (f interfaces.Function, isFunc bool, err 
 
 func (p *Parser) parseStr(str []rune) (interfaces.Expression, error) {
 	if len(str) == 0 {
-		return &internal.Term{Val: "0"}, nil
+		return &internal.Term{Val: decimal.Zero.String()}, nil
 	}
 	level := 0
 

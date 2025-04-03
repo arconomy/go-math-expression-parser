@@ -1,13 +1,19 @@
 # expp - tiny math expression parser
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/Overseven/go-math-expression-parser)](https://goreportcard.com/report/github.com/Overseven/go-math-expression-parser)
+[![Go Report Card](https://goreportcard.com/badge/github.com/arconomy/go-math-expression-parser)](https://goreportcard.com/report/github.com/arconomy/go-math-expression-parser)
 [![Coverage Status](https://coveralls.io/repos/github/Overseven/go-math-expression-parser/badge.svg?branch=main)](https://coveralls.io/github/Overseven/go-math-expression-parser?branch=main)
 
+## Changes
+This is a fork of https://github.com/Overseven/go-math-expression-parser. The main difference is that `shopspring.Decimal` is used for precision.
+
 ## Contents
-- [Supported operations](#supported-operations)
-- [Example of usage](#example)
-- [User-defined function](#user-defined-functions)
-- [Todo](#todo)
+- [expp - tiny math expression parser](#expp---tiny-math-expression-parser)
+  - [Changes](#changes)
+  - [Contents](#contents)
+  - [Supported operations](#supported-operations)
+  - [Example](#example)
+  - [User-defined functions](#user-defined-functions)
+  - [TODO](#todo)
 
 ## Supported operations
 This parser supports some elements of math expressions:
@@ -45,7 +51,7 @@ fmt.Println("Variables: ", vars)
 ```
 All variables must be defined to calculate an expression result:
 ```go
-values := make(map[string]float64)
+values := make(map[string]decimal.Decimal)
 values["numOfGoods"] = 20
 values["price"] = 15.4
 values["purchasePrice"] = 10.3
@@ -56,7 +62,7 @@ result, _ := parser.Evaluate(values)
 fmt.Println("Result: ", result)
 // Result: 88.74
 ```
-The additional example is contained in the `console_calc.go` [file](https://github.com/Overseven/go-math-expression-parser/blob/main/console_calc.go)
+The additional example is contained in the `console_calc.go` [file](https://github.com/arconomy/go-math-expression-parser/blob/main/console_calc.go)
 
 ## User-defined functions
 You can add to the parser your own function and set the expression string presentation name.
@@ -67,15 +73,15 @@ package main
 import (
 	"fmt"
 
-	"github.com/Overseven/go-math-expression-parser/expp"
+	"github.com/arconomy/go-math-expression-parser/expp"
 )
 
 // Foo - example of user-defined function
-func Foo(a ...float64) (float64, error) {
+func Foo(a ...decimal.Decimal) (decimal.Decimal, error) {
 	fmt.Println("Foo was called!")
-	var sum float64
+	var sum decimal.Decimal
 	for _, val := range a {
-		sum += val
+		sum = sum.Add(val)
 	}
 	return sum, nil
 }
@@ -100,7 +106,7 @@ func main() {
     // output: 'Parsed execution tree: ( * 10 ( bar ( 60,6,0.6 ) ) )'
     
     // execution of the expression
-    result, err := parser.Evaluate(map[string]float64{})
+    result, err := parser.Evaluate(map[string]decimal.Decimal{})
     if err != nil {
         fmt.Println("Error: ", err)
     }

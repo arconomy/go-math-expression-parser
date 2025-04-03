@@ -3,7 +3,7 @@ package internal
 import (
 	"strings"
 
-	"github.com/overseven/go-math-expression-parser/interfaces"
+	"github.com/arconomy/go-math-expression-parser/interfaces"
 )
 
 func PrepareString(str string) string {

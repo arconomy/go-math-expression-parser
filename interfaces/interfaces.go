@@ -1,7 +1,8 @@
 package interfaces
 
 import (
-	"github.com/overseven/go-math-expression-parser/funcs"
+	"github.com/arconomy/go-math-expression-parser/funcs"
+	"github.com/shopspring/decimal"
 )
 
 type ExpParser interface {
@@ -9,13 +10,13 @@ type ExpParser interface {
 	GetFunctions() [funcs.LevelsOfPriorities]map[string]funcs.FuncType
 	String() string
 	Parse(str string) (Expression, error)
-	Evaluate(vars map[string]float64) (float64, error)
+	Evaluate(vars map[string]decimal.Decimal) (decimal.Decimal, error)
 }
 
 // Exp - the base interface for Term and Node structures
 type Expression interface {
 	String() string
-	Evaluate(vars map[string]float64, p ExpParser) (float64, error)
+	Evaluate(vars map[string]decimal.Decimal, p ExpParser) (decimal.Decimal, error)
 	GetVarList(vars map[string]interface{})
 }
 

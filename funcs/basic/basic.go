@@ -6,7 +6,8 @@ import (
 	"math"
 	"strconv"
 
-	"github.com/overseven/go-math-expression-parser/funcs"
+	"github.com/arconomy/go-math-expression-parser/funcs"
+	"github.com/shopspring/decimal"
 )
 
 var (
@@ -34,81 +35,81 @@ var (
 	}
 )
 
-func UnarySum(args ...float64) (float64, error) {
+func UnarySum(args ...decimal.Decimal) (decimal.Decimal, error) {
 	if len(args) != 1 {
-		return 0, errors.New("incorrect count of args for unary sum operator. Need: 2, but get: " + strconv.Itoa(len(args)))
+		return decimal.Zero, errors.New("incorrect count of args for unary sum operator. Need: 2, but get: " + strconv.Itoa(len(args)))
 	}
 	return args[0], nil
 }
-func UnarySub(args ...float64) (float64, error) {
+func UnarySub(args ...decimal.Decimal) (decimal.Decimal, error) {
 	if len(args) != 1 {
-		return 0, errors.New("incorrect count of args for unary subtract operator. Need: 2, but get: " + strconv.Itoa(len(args)))
+		return decimal.Zero, errors.New("incorrect count of args for unary subtract operator. Need: 2, but get: " + strconv.Itoa(len(args)))
 	}
-	return -args[0], nil
+	return args[0].Neg(), nil
 }
 
-func Sqrt(args ...float64) (float64, error) {
+func Sqrt(args ...decimal.Decimal) (decimal.Decimal, error) {
 	if len(args) != 1 {
-		return 0, errors.New("incorrect count of args for 'sqrt' function. Need: 1, but get: " + strconv.Itoa(len(args)))
+		return decimal.Zero, errors.New("incorrect count of args for 'sqrt' function. Need: 1, but get: " + strconv.Itoa(len(args)))
 	}
-	if args[0] < 0 {
-		return 0, errors.New("'sqrt' function argument is negative: " + fmt.Sprintf("%f", args[0]))
+	if args[0].LessThan(decimal.Zero) {
+		return decimal.Zero, errors.New("'sqrt' function argument is negative: " + fmt.Sprintf("%v", args[0]))
 	}
-	return math.Sqrt(args[0]), nil
+	return decimal.NewFromFloat(math.Sqrt(args[0].InexactFloat64())), nil
 }
 
-func Abs(args ...float64) (float64, error) {
+func Abs(args ...decimal.Decimal) (decimal.Decimal, error) {
 	if len(args) != 1 {
-		return 0, errors.New("incorrect count of args for 'abs' function. Need: 1, but get: " + strconv.Itoa(len(args)))
+		return decimal.Zero, errors.New("incorrect count of args for 'abs' function. Need: 1, but get: " + strconv.Itoa(len(args)))
 	}
-	return math.Abs(args[0]), nil
+	return args[0].Abs(), nil
 }
 
-func Mult(args ...float64) (float64, error) {
+func Mult(args ...decimal.Decimal) (decimal.Decimal, error) {
 	if len(args) != 2 {
-		return 0, errors.New("incorrect count of args for multiplication operator. Need: 2, but get: " + strconv.Itoa(len(args)))
+		return decimal.Zero, errors.New("incorrect count of args for multiplication operator. Need: 2, but get: " + strconv.Itoa(len(args)))
 	}
-	return args[0] * args[1], nil
+	return args[0].Mul(args[1]), nil
 }
 
-func Div(args ...float64) (float64, error) {
+func Div(args ...decimal.Decimal) (decimal.Decimal, error) {
 	if len(args) != 2 {
-		return 0, errors.New("incorrect count of args for division operator. Need: 2, but get: " + strconv.Itoa(len(args)))
+		return decimal.Zero, errors.New("incorrect count of args for division operator. Need: 2, but get: " + strconv.Itoa(len(args)))
 	}
-	if args[1] == 0.0 {
-		return 0, errors.New("incorrect divisor for division operator")
+	if args[1].IsZero() {
+		return decimal.Zero, errors.New("incorrect divisor for division operator")
 	}
 
-	return args[0] / args[1], nil
+	return args[0].Div(args[1]), nil
 }
 
-func Pow(args ...float64) (float64, error) {
+func Pow(args ...decimal.Decimal) (decimal.Decimal, error) {
 	if len(args) != 2 {
-		return 0, errors.New("incorrect count of args for power operator. Need: 2, but get: " + strconv.Itoa(len(args)))
+		return decimal.Zero, errors.New("incorrect count of args for power operator. Need: 2, but get: " + strconv.Itoa(len(args)))
 	}
-	return math.Pow(args[0], args[1]), nil
+	return args[0].Pow(args[1]), nil
 }
 
-func DivReminder(args ...float64) (float64, error) {
+func DivReminder(args ...decimal.Decimal) (decimal.Decimal, error) {
 	if len(args) != 2 {
-		return 0, errors.New("incorrect count of args for % operator. Need: 2, but get: " + strconv.Itoa(len(args)))
+		return decimal.Zero, errors.New("incorrect count of args for % operator. Need: 2, but get: " + strconv.Itoa(len(args)))
 	}
-	if args[1] == 0.0 {
-		return 0, errors.New("incorrect divisor for % operator")
+	if args[1].IsZero() {
+		return decimal.Zero, errors.New("incorrect divisor for % operator")
 	}
-	return float64(int(args[0]) % int(args[1])), nil
+	return args[0].Mod(args[1]), nil
 }
 
-func Sum(args ...float64) (float64, error) {
+func Sum(args ...decimal.Decimal) (decimal.Decimal, error) {
 	if len(args) != 2 {
-		return 0, errors.New("incorrect count of args for sum operator. Need: 2, but get: " + strconv.Itoa(len(args)))
+		return decimal.Zero, errors.New("incorrect count of args for sum operator. Need: 2, but get: " + strconv.Itoa(len(args)))
 	}
-	return args[0] + args[1], nil
+	return args[0].Add(args[1]), nil
 }
 
-func Sub(args ...float64) (float64, error) {
+func Sub(args ...decimal.Decimal) (decimal.Decimal, error) {
 	if len(args) != 2 {
-		return 0, errors.New("incorrect count of args for subtract operator. Need: 2, but get: " + strconv.Itoa(len(args)))
+		return decimal.Zero, errors.New("incorrect count of args for subtract operator. Need: 2, but get: " + strconv.Itoa(len(args)))
 	}
-	return args[0] - args[1], nil
+	return args[0].Sub(args[1]), nil
 }

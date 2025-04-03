@@ -2,40 +2,39 @@ package userfunc_test
 
 import (
 	"errors"
-	"fmt"
-	"math"
 	"strconv"
 	"testing"
 
-	"github.com/overseven/go-math-expression-parser/funcs/userfunc"
-	"github.com/overseven/go-math-expression-parser/interfaces"
-	"github.com/overseven/go-math-expression-parser/internal"
-	"github.com/overseven/go-math-expression-parser/parser"
+	"github.com/arconomy/go-math-expression-parser/funcs/userfunc"
+	"github.com/arconomy/go-math-expression-parser/interfaces"
+	"github.com/arconomy/go-math-expression-parser/internal"
+	"github.com/arconomy/go-math-expression-parser/parser"
+	"github.com/shopspring/decimal"
 )
 
-func foo(args ...float64) (float64, error) {
+func foo(args ...decimal.Decimal) (decimal.Decimal, error) {
 	if len(args) != 2 {
-		return -16, errors.New("need 2 args")
+		return decimal.Zero, errors.New("need 2 args")
 	}
-	return args[0] + args[1], nil
+	return args[0].Add(args[1]), nil
 }
 
-func average(args ...float64) (float64, error) {
+func average(args ...decimal.Decimal) (decimal.Decimal, error) {
 	if len(args) < 1 {
-		return 0, errors.New("need 1 or more args")
+		return decimal.Zero, errors.New("need 1 or more args")
 	}
-	var sum float64 = 0.0
+	var sum decimal.Decimal = decimal.Zero
 	for _, a := range args {
-		sum += a
+		sum = sum.Add(a)
 	}
 
-	return sum / float64(len(args)), nil
+	return sum.Div(decimal.NewFromInt(int64(len(args)))), nil
 }
 
 const float64EqualityThreshold = 1e-9
 
-func almostEqual(a, b float64) bool {
-	return math.Abs(a-b) <= float64EqualityThreshold
+func almostEqual(a, b decimal.Decimal) bool {
+	return a.Sub(b).Abs().LessThanOrEqual(decimal.NewFromFloat(float64EqualityThreshold))
 }
 
 func TestGetVarList(t *testing.T) {
@@ -91,30 +90,30 @@ func TestEvaluate(t *testing.T) {
 	f3 := userfunc.Func{"foo", []interfaces.Expression{&term1, &term2, &term3}} // foo with incorrect Args count
 	f4 := userfunc.Func{"foo", []interfaces.Expression{&f3, &term2}}
 
-	var vars = map[string]float64{}
+	var vars = map[string]decimal.Decimal{}
 	res, err := f1.Evaluate(vars, p)
 	if err != nil {
 		t.Error(err)
 	}
-	if !almostEqual(res, 5.0) {
-		t.Error("incorrect result = " + strconv.FormatFloat(res, 'e', 4, 64))
+	if !almostEqual(res, decimal.NewFromFloat(5.0)) {
+		t.Error("incorrect result = " + res.String())
 	}
 
 	res, err = f2.Evaluate(vars, p)
 	if err != nil {
 		t.Error(err)
 	}
-	if !almostEqual(res, 105.0) {
-		t.Error("incorrect result = " + strconv.FormatFloat(res, 'e', 4, 64))
+	if !almostEqual(res, decimal.NewFromFloat(105.0)) {
+		t.Error("incorrect result = " + res.String())
 	}
 
-	res, err = f3.Evaluate(vars, p)
-	if err == nil || res != -16 {
+	_, err = f3.Evaluate(vars, p)
+	if err == nil {
 		t.Error("foo error was not handled!")
 	}
 
-	res, err = f4.Evaluate(vars, p)
-	if err == nil || res != -1 {
+	_, err = f4.Evaluate(vars, p)
+	if err == nil {
 		t.Error("foo error was not handled!")
 	}
 }
@@ -233,28 +232,28 @@ func TestGetArgs(t *testing.T) {
 }
 
 func TestUserFunction(t *testing.T) {
-	func1 := func(args ...float64) (float64, error) {
-		return args[0]*args[1] - args[2], nil
+	func1 := func(args ...decimal.Decimal) (decimal.Decimal, error) {
+		return args[0].Mul(args[1]).Sub(args[2]), nil
 	}
-	func2 := func(args ...float64) (float64, error) {
-		return args[0] + args[1] + args[2], nil
+	func2 := func(args ...decimal.Decimal) (decimal.Decimal, error) {
+		return args[0].Add(args[1]).Add(args[2]), nil
 	}
 	pars := parser.NewParser()
 	pars.AddFunction(func1, "func1")
 	pars.AddFunction(func2, "func2")
 
-	type TestVars map[string]float64
+	type TestVars map[string]decimal.Decimal
 	type TestData struct {
 		input  string
 		vars   TestVars
-		output float64
+		output decimal.Decimal
 	}
 
 	data := []TestData{
-		{"func1(2, 3, 1)", TestVars{}, 5.0},
-		{"func1(2^x, y, (x+y))", TestVars{"x": 3, "y": 5.1}, 32.7},
-		{"func2(600, 60, 6)", TestVars{}, 666},
-		{"func2(func2(700,70,7), 222, -8)", TestVars{}, 991},
+		{"func1(2, 3, 1)", TestVars{}, decimal.NewFromInt(5)},
+		{"func1(2^x, y, (x+y))", TestVars{"x": decimal.NewFromInt(3), "y": decimal.NewFromFloat(5.1)}, decimal.NewFromFloat(32.7)},
+		{"func2(600, 60, 6)", TestVars{}, decimal.NewFromInt(666)},
+		{"func2(func2(700,70,7), 222, -8)", TestVars{}, decimal.NewFromInt(991)},
 	}
 
 	for _, d := range data {
@@ -267,7 +266,7 @@ func TestUserFunction(t *testing.T) {
 			t.Error(err)
 		}
 		if !almostEqual(res, d.output) {
-			t.Error("incorrect result, need: " + strconv.FormatFloat(d.output, 'e',4, 64) + ", but get: " + fmt.Sprintf("%f", res))
+			t.Error("incorrect result, need: " + d.output.String() + ", but get: " + res.String())
 		}
 	}
 }

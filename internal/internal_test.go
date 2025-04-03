@@ -1,34 +1,33 @@
 package internal_test
 
 import (
-	"fmt"
-	"math"
 	"strconv"
 	"testing"
 
-	"github.com/overseven/go-math-expression-parser/internal"
-	expp "github.com/overseven/go-math-expression-parser/parser"
+	"github.com/arconomy/go-math-expression-parser/internal"
+	expp "github.com/arconomy/go-math-expression-parser/parser"
+	"github.com/shopspring/decimal"
 )
 
 const float64EqualityThreshold = 1e-9
 
-func fuzzyEqual(a, b float64) bool {
-	return math.Abs(a-b) <= float64EqualityThreshold
+func fuzzyEqual(a, b decimal.Decimal) bool {
+	return a.Sub(b).Abs().LessThanOrEqual(decimal.NewFromFloat(float64EqualityThreshold))
 }
 
 func TestEvalWithVars(t *testing.T) {
-	type TestVars map[string]float64
+	type TestVars map[string]decimal.Decimal
 	type TestData struct {
 		input  string
 		vars   TestVars
-		output float64
+		output decimal.Decimal
 	}
 
 	data := []TestData{
-		{"x+y", TestVars{"x": 7.7, "y": 1.2}, 8.9},
-		{"x+(-y)", TestVars{"x": 100.0, "y": 12.0}, 88},
-		{"x1*(x2^2)", TestVars{"x1": -100.0, "x2": 7.0}, -4900},
-		{"(доход-расход)*налог", TestVars{"доход": 1520, "расход": 840, "налог": 0.87}, 591.6},
+		{"x+y", TestVars{"x": decimal.NewFromFloat(7.7), "y": decimal.NewFromFloat(1.2)}, decimal.NewFromFloat(8.9)},
+		{"x+(-y)", TestVars{"x": decimal.NewFromFloat(100.0), "y": decimal.NewFromFloat(12.0)}, decimal.NewFromFloat(88)},
+		{"x1*(x2^2)", TestVars{"x1": decimal.NewFromFloat(-100.0), "x2": decimal.NewFromFloat(7.0)}, decimal.NewFromFloat(-4900)},
+		{"(доход-расход)*налог", TestVars{"доход": decimal.NewFromInt(1520), "расход": decimal.NewFromInt(840), "налог": decimal.NewFromFloat(0.87)}, decimal.NewFromFloat(591.6)},
 	}
 
 	pars := expp.NewParser()
@@ -43,7 +42,7 @@ func TestEvalWithVars(t *testing.T) {
 			t.Error(err)
 		}
 		if !fuzzyEqual(res, d.output) {
-			t.Error("incorrect result, need: " + fmt.Sprintf("%f", d.output) + ", but get: " + fmt.Sprintf("%f", res))
+			t.Error("incorrect result, need: " + d.output.String() + ", but get: " + res.String())
 		}
 	}
 }
@@ -75,8 +74,8 @@ func TestParenthesisIsCorrect(t *testing.T) {
 
 }
 
-func Foo1(args ...float64) (float64, error) {
-	return 0.1, nil
+func Foo1(args ...decimal.Decimal) (decimal.Decimal, error) {
+	return decimal.NewFromFloat(0.1), nil
 }
 func TestUnaryOperatorExist(t *testing.T) {
 	p := expp.NewParser()

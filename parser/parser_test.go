@@ -2,19 +2,14 @@ package parser
 
 import (
 	"errors"
-	"fmt"
-	"math"
 	"sort"
 	"strconv"
 	"testing"
 
+	"github.com/shopspring/decimal"
 )
 
 const float64EqualityThreshold = 1e-9
-
-func fuzzyEqual(a, b float64) bool {
-	return math.Abs(a-b) <= float64EqualityThreshold
-}
 
 func TestGetVarList(t *testing.T) {
 	allElemsIsUnique := func(arr []string) error {
@@ -75,11 +70,11 @@ func TestGetVarList(t *testing.T) {
 }
 
 func TestNewParser(t *testing.T) {
-	func1 := func(args ...float64) (float64, error) {
-		return args[0] + 100, nil
+	func1 := func(args ...decimal.Decimal) (decimal.Decimal, error) {
+		return args[0].Add(decimal.NewFromFloat(100)), nil
 	}
-	func2 := func(args ...float64) (float64, error) {
-		return args[0] + 200, nil
+	func2 := func(args ...decimal.Decimal) (decimal.Decimal, error) {
+		return args[0].Add(decimal.NewFromFloat(200)), nil
 	}
 	parser1 := NewParser()
 	parser2 := NewParser()
@@ -92,39 +87,39 @@ func TestNewParser(t *testing.T) {
 	data := []string{"f1(1)", "f2(2)"}
 
 	parser1.Parse(data[0])
-	res, err := parser1.Evaluate(map[string]float64{})
+	res, err := parser1.Evaluate(map[string]decimal.Decimal{"a": decimal.NewFromFloat(1)})
 	if err != nil {
 		t.Error(err)
 	}
-	if !fuzzyEqual(res, 101) {
-		t.Error("incorrect parser1 result, need: 101.0, but get: " + fmt.Sprintf("%f", res))
+	if !res.Equal(decimal.NewFromFloat(101)) {
+		t.Error("incorrect parser1 result, need: 101.0, but get: " + res.String())
 	}
 
 	parser1.Parse(data[1])
-	res, err = parser1.Evaluate(map[string]float64{})
+	res, err = parser1.Evaluate(map[string]decimal.Decimal{})
 	if err != nil {
 		t.Error(err)
 	}
-	if !fuzzyEqual(res, 202) {
-		t.Error("incorrect parser1 result, need: 202.0, but get: " + fmt.Sprintf("%f", res))
+	if !res.Equal(decimal.NewFromFloat(202)) {
+		t.Error("incorrect parser1 result, need: 202.0, but get: " + res.String())
 	}
 
 	parser2.Parse(data[0])
-	res, err = parser2.Evaluate(map[string]float64{})
+	res, err = parser2.Evaluate(map[string]decimal.Decimal{})
 	if err != nil {
 		t.Error(err)
 	}
-	if !fuzzyEqual(res, 201) {
-		t.Error("incorrect parser2 result, need: 201.0, but get: " + fmt.Sprintf("%f", res))
+	if !res.Equal(decimal.NewFromFloat(201)) {
+		t.Error("incorrect parser2 result, need: 201.0, but get: " + res.String())
 	}
 
 	parser2.Parse(data[1])
-	res, err = parser2.Evaluate(map[string]float64{})
+	res, err = parser2.Evaluate(map[string]decimal.Decimal{})
 	if err != nil {
 		t.Error(err)
 	}
-	if !fuzzyEqual(res, 102) {
-		t.Error("incorrect parser2 result, need: 102.0, but get: " + fmt.Sprintf("%f", res))
+	if !res.Equal(decimal.NewFromFloat(102)) {
+		t.Error("incorrect parser2 result, need: 102.0, but get: " + res.String())
 	}
 }
 
@@ -132,12 +127,12 @@ func TestNewParser2(t *testing.T) {
 	parser := NewParser()
 	type TestData struct {
 		input  string
-		output float64
+		output decimal.Decimal
 	}
 	data := []TestData{
-		{"15+20", 35},
-		{"2^3-10", -2},
-		{"sqrt(14+(4^(0.5)))", 4},
+		{"15+20", decimal.NewFromInt(35)},
+		{"2^3-10", decimal.NewFromInt(-2)},
+		{"sqrt(14+(4^(0.5)))", decimal.NewFromInt(4)},
 	}
 
 	for _, d := range data {
@@ -145,29 +140,31 @@ func TestNewParser2(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		res, err := parser.Evaluate(map[string]float64{})
+		res, err := parser.Evaluate(map[string]decimal.Decimal{})
 		if err != nil {
 			t.Error(err)
 		}
-		if !fuzzyEqual(res, d.output) {
-			t.Error("incorrect result, need: " + fmt.Sprintf("%f", d.output) + ", but get: " + fmt.Sprintf("%f", res))
+		if !res.Equal(d.output) {
+			t.Error("incorrect result, need: " + d.output.String() + ", but get: " + res.String())
 		}
 	}
 }
 
-
 func TestParse(t *testing.T) {
 	type TestData struct {
 		input  string
-		output float64
+		output decimal.Decimal
 	}
 
 	data := []TestData{
-		{"", 0.0},
-		{"10+50+5", 65},
-		{"2*2+2", 6},
-		{"2*(2+2)", 8},
-		{"100+sqrt(3^2+(2*2+3))", 104},
+		{"", decimal.Zero},
+		{"10+50+5", decimal.NewFromInt(65)},
+		{"2*2+2", decimal.NewFromInt(6)},
+		{"2*(2+2)", decimal.NewFromInt(8)},
+		{"3^2", decimal.NewFromInt(9)},
+		{"2*2+3", decimal.NewFromInt(7)},
+		{"sqrt(3^2+(2*2+3))", decimal.NewFromInt(4)},
+		{"100+sqrt(3^2+(2*2+3))", decimal.NewFromInt(104)},
 	}
 	parser := NewParser()
 	for _, d := range data {
@@ -175,17 +172,17 @@ func TestParse(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		res, err := parser.Evaluate(map[string]float64{})
+		res, err := parser.Evaluate(map[string]decimal.Decimal{})
 		if err != nil {
 			t.Error(err)
 		}
-		if !fuzzyEqual(res, d.output) {
-			t.Error("incorrect result, need: " + fmt.Sprintf("%f", d.output) + ", but get: " + fmt.Sprintf("%f", res))
+		if !res.Equal(d.output) {
+			t.Error("incorrect result, need: " + d.output.String() + ", but get: " + res.String())
 		}
 	}
 }
 
-func TestParserString(t *testing.T){
+func TestParserString(t *testing.T) {
 	p := NewParser()
 	p.Parse("")
 	if p.String() != "0" {
@@ -221,13 +218,13 @@ func TestParse2(t *testing.T) {
 	}
 }
 
-func TestParseStr(t *testing.T){
+func TestParseStr(t *testing.T) {
 	//p := Parser{}
 	//i, err := p.parseStr([]rune("asf"))
 	// TODO: finish
 }
 
-func TestParseFunc(t *testing.T){
+func TestParseFunc(t *testing.T) {
 	//p := Parser{}
 	//_, isFunc, err := p.parseFunc([]rune("foo(a+b)"))
 	// TODO: finish

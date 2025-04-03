@@ -3,7 +3,8 @@ package internal
 import (
 	"errors"
 
-	"github.com/overseven/go-math-expression-parser/interfaces"
+	"github.com/arconomy/go-math-expression-parser/interfaces"
+	"github.com/shopspring/decimal"
 )
 
 // Node - the struct which contains two variables and a binary operation
@@ -14,18 +15,18 @@ type Node struct {
 }
 
 // Evaluate - execute expression tree
-func (n *Node) Evaluate(vars map[string]float64, p interfaces.ExpParser) (float64, error) {
+func (n *Node) Evaluate(vars map[string]decimal.Decimal, p interfaces.ExpParser) (decimal.Decimal, error) {
 	left, err := n.LExp.Evaluate(vars, p)
 	if err != nil {
-		return 0.0, err
+		return decimal.Zero, err
 	}
 	right, err := n.RExp.Evaluate(vars, p)
 	if err != nil {
-		return 0.0, err
+		return decimal.Zero, err
 	}
 	indx, exist := BinaryOperatorExist(n.Op, p)
 	if !exist {
-		return 0.0, errors.New("not supported binary operation: '" + string(n.Op) + "'")
+		return decimal.Zero, errors.New("not supported binary operation: '" + string(n.Op) + "'")
 	}
 	result, err := p.GetFunctions()[indx][n.Op](left, right)
 	return result, err

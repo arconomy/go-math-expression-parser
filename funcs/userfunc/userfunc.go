@@ -1,7 +1,8 @@
 package userfunc
 
 import (
-	"github.com/overseven/go-math-expression-parser/interfaces"
+	"github.com/arconomy/go-math-expression-parser/interfaces"
+	"github.com/shopspring/decimal"
 )
 
 // Func - the struct which contains a function and an argument
@@ -17,12 +18,12 @@ func (f *Func) GetVarList(vars map[string]interface{}) {
 }
 
 // Evaluate function
-func (f *Func) Evaluate(vars map[string]float64, p interfaces.ExpParser) (float64, error) {
-	var args []float64
+func (f *Func) Evaluate(vars map[string]decimal.Decimal, p interfaces.ExpParser) (decimal.Decimal, error) {
+	var args []decimal.Decimal
 	for _, arg := range f.Args {
 		res, err := arg.Evaluate(vars, p)
 		if err != nil {
-			return -1, err
+			return decimal.Zero, err
 		}
 		args = append(args, res)
 	}

@@ -3,7 +3,8 @@ package internal
 import (
 	"errors"
 
-	"github.com/overseven/go-math-expression-parser/interfaces"
+	"github.com/arconomy/go-math-expression-parser/interfaces"
+	"github.com/shopspring/decimal"
 )
 
 // Unary - the struct which contains a variable and a unary operation
@@ -17,14 +18,14 @@ func (u *Unary) GetVarList(vars map[string]interface{}) {
 }
 
 // Evaluate - execute unary operator
-func (u *Unary) Evaluate(vars map[string]float64, p interfaces.ExpParser) (float64, error) {
+func (u *Unary) Evaluate(vars map[string]decimal.Decimal, p interfaces.ExpParser) (decimal.Decimal, error) {
 	val, err := u.Exp.Evaluate(vars, p)
 	if err != nil {
-		return 0.0, err
+		return decimal.Zero, err
 	}
 	indx, exist := UnaryOperatorExist(u.Op, p)
 	if !exist {
-		return 0.0, errors.New("not supported unary operation: '" + u.Op + "'")
+		return decimal.Zero, errors.New("not supported unary operation: '" + u.Op + "'")
 	}
 	result, err := p.GetFunctions()[indx][u.Op](val)
 	return result, err
