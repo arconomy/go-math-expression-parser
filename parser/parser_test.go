@@ -165,6 +165,7 @@ func TestParse(t *testing.T) {
 		{"2*2+3", decimal.NewFromInt(7)},
 		{"sqrt(3^2+(2*2+3))", decimal.NewFromInt(4)},
 		{"100+sqrt(3^2+(2*2+3))", decimal.NewFromInt(104)},
+		{"2*-1", decimal.NewFromInt(-2)},
 	}
 	parser := NewParser()
 	for _, d := range data {

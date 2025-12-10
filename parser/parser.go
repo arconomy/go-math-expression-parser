@@ -69,6 +69,19 @@ func (p *Parser) Evaluate(vars map[string]decimal.Decimal) (decimal.Decimal, err
 	return result, err
 }
 
+func isValidBinaryOperatorContext(str []rune, operatorIndex int) bool {
+	if operatorIndex <= 0 {
+		return false
+	}
+	prevChar := str[operatorIndex-1]
+	switch prevChar {
+	case '+', '-', '*', '/', '%', '^', '(':
+		return false
+	default:
+		return true
+	}
+}
+
 func (p *Parser) parseFunc(str []rune) (f interfaces.Function, isFunc bool, err error) {
 	ind := strings.IndexRune(string(str), '(')
 	var args [][]rune
@@ -151,7 +164,7 @@ func (p *Parser) parseStr(str []rune) (interfaces.Expression, error) {
 				continue
 			}
 			if _, ok := p.GetFunctions()[priorityLevel][string(c)]; ok {
-				if i > 0 {
+				if i > 0 && isValidBinaryOperatorContext(str, i) {
 					left := str[0:i]
 					right := str[i+1:]
 					resL, err := p.parseStr(left)
@@ -164,6 +177,26 @@ func (p *Parser) parseStr(str []rune) (interfaces.Expression, error) {
 					}
 					return &internal.Node{Op: string(c), LExp: resL, RExp: resR}, nil
 				}
+			}
+		}
+	}
+
+	level = 0
+	for i := 0; i < len(str); i++ {
+		c := str[i]
+		if c == '(' {
+			level++
+			continue
+		}
+		if c == ')' {
+			level--
+			continue
+		}
+		if level > 0 {
+			continue
+		}
+		if _, ok := p.GetFunctions()[0][string(c)]; ok {
+			if i == 0 {
 				right := str[i+1:]
 				resR, err := p.parseStr(right)
 				if err != nil {
